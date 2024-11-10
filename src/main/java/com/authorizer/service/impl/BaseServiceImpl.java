@@ -19,4 +19,10 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
                 .orElseThrow(() -> new RuntimeException("not found"));
     }
 
+    @Override
+    @Transactional
+    public T save(T entity) {
+        return (T) getRepository().save(entity);
+    }
+
 }
