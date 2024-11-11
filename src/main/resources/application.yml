@@ -6,6 +6,10 @@ spring:
       ddl-auto: update
     database: mysql
     database-platform: org.hibernate.dialect.MySQL57Dialect
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
   datasource:
     url: ${DATABASE_URL:jdbc:mysql://localhost:3306/miniautorizador}
     username: root
@@ -20,3 +24,9 @@ spring-doc:
     path: /
     tagsSorter: alpha
     operationsSorter: method
+
+logging:
+  level:
+    org:
+      hibernate:
+        type: trace
