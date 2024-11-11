@@ -3,6 +3,7 @@ package com.authorizer.service;
 import com.authorizer.chain.BalanceTypeStep;
 import com.authorizer.domain.Account;
 import com.authorizer.domain.Balance;
+import com.authorizer.domain.BalanceEntity;
 import com.authorizer.dto.TransactionDTO;
 import com.authorizer.enums.BalanceTypeEnum;
 import com.authorizer.exception.InsufficientBalanceException;
@@ -23,19 +24,19 @@ import java.util.Optional;
 public class TransactionService {
 
 
-    private final AccountServiceImpl accountServiceImpl;
-    private final BalanceServiceImpl balanceServiceImpl;
+    private final AccountService accountService;
+    private final BalanceService balanceService;
     private final List<BalanceTypeStep> stepsToFindBalanceType;
 
-    public TransactionService(List<BalanceTypeStep> stepsToFindBalanceType, AccountServiceImpl accountServiceImpl, BalanceServiceImpl balanceServiceImpl) {
+    public TransactionService(List<BalanceTypeStep> stepsToFindBalanceType,  AccountService accountService, BalanceService balanceService) {
         this.stepsToFindBalanceType = stepsToFindBalanceType;
-        this.accountServiceImpl = accountServiceImpl;
-        this.balanceServiceImpl = balanceServiceImpl;
+        this.accountService = accountService;
+        this.balanceService = balanceService;
     }
 
     public void processing(TransactionDTO transaction) throws Throwable {
         log.info("Starting transaction...");
-        Account account = accountServiceImpl.findById(transaction.getAccount());
+        Account account = accountService.findById(transaction.getAccount());
 
         Optional<BalanceTypeStep> first = stepsToFindBalanceType
                 .stream()
@@ -45,19 +46,21 @@ public class TransactionService {
         BalanceTypeEnum balanceType = first.get().getBalanceTypeEnum();
         log.info("Amount will be debited from the balance {}", balanceType);
 
-        Optional<Balance> accountBalance = findBalanceByType(account, balanceType);
+        Optional<BalanceEntity> accountBalance = findBalanceByType(account, balanceType);
 
         BigDecimal amountTransaction = transaction.getTotalAmount();
 
-        accountBalance.ifPresentOrElse(balance -> {
-                    if (balance.getAmount().compareTo(amountTransaction) >= 0) {
-                        balance.setAmount(balance.getAmount().subtract(amountTransaction).setScale(2, RoundingMode.FLOOR));
-                        balanceServiceImpl.save(balance);
-                    } else {
-                        Optional<Balance> balanceCash = findBalanceByType(account, BalanceTypeEnum.CASH);
+        accountBalance.ifPresentOrElse(balanceEntity -> {
+                    Balance balance = balanceEntity.toBalance();
+                    /*if (balance.getAmount().compareTo(amountTransaction) >= 0) {
+                        balance.setAmount(balance.getAmount().subtract(amountTransaction).setScale(2, RoundingMode.FLOOR));*/
+                        balance.doDebit(amountTransaction);
+                        balanceService.save(balance.toEntity());
+                   /* } else {
+                        Optional<BalanceEntity> balanceCash = findBalanceByType(account, BalanceTypeEnum.CASH);
                         balanceCash.ifPresent(cash -> {
                             if (cash.getAmount().compareTo(amountTransaction) >= 0) {
-                                cash.setAmount(balance.getAmount().subtract(amountTransaction).setScale(2, RoundingMode.FLOOR));
+                                cash.setAmount(balanceEntity.getAmount().subtract(amountTransaction).setScale(2, RoundingMode.FLOOR));
                                 balanceServiceImpl.save(cash);
 
                             } else {
@@ -65,7 +68,7 @@ public class TransactionService {
                             }
 
                         });
-                    }
+                    }*/
                     log.info("Authorization done...");
 
                 },
@@ -76,8 +79,8 @@ public class TransactionService {
 
     }
 
-    private static Optional<Balance> findBalanceByType(Account account, BalanceTypeEnum balanceType) {
-        return account.getBalances()
+    private static Optional<BalanceEntity> findBalanceByType(Account account, BalanceTypeEnum balanceType) {
+        return account.getBalanceEntities()
                 .stream()
                 .filter(balance -> balanceType.equals(balance.getType()))
                 .findFirst();

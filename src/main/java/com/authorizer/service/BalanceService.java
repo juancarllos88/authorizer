@@ -1,6 +1,6 @@
 package com.authorizer.service;
 
-import com.authorizer.domain.Balance;
+import com.authorizer.domain.BalanceEntity;
 
-public interface BalanceService extends BaseService<Balance> {
+public interface BalanceService extends BaseService<BalanceEntity> {
 }

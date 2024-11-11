@@ -42,7 +42,7 @@ public class Account implements Serializable {
     private LocalDateTime updatedAt;
 
     @OneToMany(fetch =FetchType.LAZY, mappedBy = "account")
-    private List<Balance> balances ;
+    private List<BalanceEntity> balanceEntities;
 
 
 
