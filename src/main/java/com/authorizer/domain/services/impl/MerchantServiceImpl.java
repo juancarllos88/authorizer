@@ -4,6 +4,7 @@ import com.authorizer.domain.model.Merchant;
 import com.authorizer.infrastructure.entity.MerchantEntity;
 import com.authorizer.infrastructure.repository.MerchantRepository;
 import com.authorizer.domain.services.MerchantService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ public class MerchantServiceImpl extends BaseServiceImpl<Merchant, MerchantEntit
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable("merchant_findByName_name")
     public Optional<Merchant> findByName(String name) {
         Optional<MerchantEntity> merchantEntity = getRepository().findByName(name);
         return merchantEntity.map(MerchantEntity::toModel);

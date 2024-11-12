@@ -3,8 +3,10 @@ package com.authorizer.domain.chain.steps;
 import com.authorizer.domain.model.MerchantCategoryCode;
 import com.authorizer.presentation.dto.transaction.TransactionDTO;
 import com.authorizer.domain.services.MerchantCategoryCodeService;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.Cacheable;
 import java.util.Optional;
 
 @Component
@@ -22,6 +24,7 @@ public class MerchantCodeStep extends BalanceTypeStep {
     }
 
     @Override
+
     public boolean searchInfo(TransactionDTO transaction) {
         Optional<MerchantCategoryCode> merchantCategoryCode = merchantCategoryCodeService.findByCode(transaction.getMcc());
         if(merchantCategoryCode.isPresent()) {

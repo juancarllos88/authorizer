@@ -1,6 +1,9 @@
 spring:
   application:
     name: caju-authorizer
+  cache:
+    type: redis
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -30,3 +33,9 @@ logging:
     org:
       hibernate:
         type: trace
+
+espoc:
+  idempotency:
+    paths: >
+      /transactions/authorization
+    ttlInMinutes: 120
