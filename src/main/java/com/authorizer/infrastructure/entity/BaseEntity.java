@@ -1,13 +1,21 @@
 package com.authorizer.infrastructure.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.GenerationType;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 
 import java.io.Serializable;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
+
+import static jakarta.persistence.GenerationType.UUID;
 
 @MappedSuperclass
 public abstract class BaseEntity<T extends Serializable, M extends Serializable> implements Serializable {
@@ -17,7 +25,7 @@ public abstract class BaseEntity<T extends Serializable, M extends Serializable>
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Type(type = "uuid-char")
+    @JdbcTypeCode(SqlTypes.CHAR)
     protected T id;
 
     public BaseEntity() {
