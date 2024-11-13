@@ -23,19 +23,25 @@ server:
     include-stacktrace: never
 
 spring-doc:
+  api-docs:
+    enabled: true
+    path: /api/docs
   swagger-ui:
-    path: /
-    tagsSorter: alpha
-    operationsSorter: method
+    path: /api/docs/swagger-ui
+    enabled: true
+#    tagsSorter: alpha
+#    operationsSorter: method
 
 logging:
   level:
     org:
       hibernate:
         type: trace
+    com:
+      authorizer: debug
 
 espoc:
   idempotency:
     paths: >
       /transactions/authorization
-    ttlInMinutes: 120
+    ttlInMinutes: 60
