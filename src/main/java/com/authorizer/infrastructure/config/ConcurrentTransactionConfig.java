@@ -1,8 +1,8 @@
 package com.authorizer.infrastructure.config;
 
-import com.authorizer.infrastructure.filter.IdempotenceFilter;
+import com.authorizer.infrastructure.filter.ConcurrentCacheControl;
+import com.authorizer.infrastructure.filter.ConcurrentTransactionFilter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,21 +14,21 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.util.List;
 
 @Configuration
-public  class  IdempotencyConfig {
+public  class ConcurrentTransactionConfig {
 
     @Value("${espoc.idempotency.paths}")
     private List<String> idempotencyApiPaths;
 
-    @Value("${espoc.idempotency.ttlInMinutes:60}")
+    @Value("${espoc.idempotency.ttlInMinutes}")
     private Long ttlInMinutes;
 
     @Bean
-    RedisTemplate<String, IdempotenceFilter.IdempotencyValue> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<String, ConcurrentCacheControl> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         StringRedisSerializer stringRedisSerializer  =  new  StringRedisSerializer ();
         Jackson2JsonRedisSerializer jackson2JsonRedisSerializer  =
-                new  Jackson2JsonRedisSerializer (IdempotenceFilter.IdempotencyValue.class);
+                new  Jackson2JsonRedisSerializer (ConcurrentCacheControl.class);
 
-        RedisTemplate<String, IdempotenceFilter.IdempotencyValue> template = new RedisTemplate<>();
+        RedisTemplate<String, ConcurrentCacheControl> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
 
         template.setKeySerializer(stringRedisSerializer);
@@ -40,17 +40,20 @@ public  class  IdempotencyConfig {
         return template;
     }
 
+    /**
+     * Obs: Make sure the idempotency filter is after all authentication related filter
+     */
     @Bean
-    public FilterRegistrationBean<IdempotenceFilter> idempotenceFilterRegistrationBean (
-            RedisTemplate<String, IdempotenceFilter.IdempotencyValue> redisTemplate) {
+    public FilterRegistrationBean<ConcurrentTransactionFilter> idempotenceFilterRegistrationBean (
+            RedisTemplate<String, ConcurrentCacheControl> redisTemplate) {
 
-        FilterRegistrationBean<IdempotenceFilter> registrationBean = new FilterRegistrationBean();
+        FilterRegistrationBean<ConcurrentTransactionFilter> registrationBean = new FilterRegistrationBean();
 
-        IdempotenceFilter  idempotenceFilter  =  new  IdempotenceFilter (redisTemplate, ttlInMinutes);
+        ConcurrentTransactionFilter concurrentTransactionFilter =  new ConcurrentTransactionFilter(redisTemplate, ttlInMinutes);
 
-        registrationBean.setFilter(idempotenceFilter);
+        registrationBean.setFilter(concurrentTransactionFilter);
         registrationBean.addUrlPatterns(idempotencyApiPaths.toArray(String[]:: new ));
-        registrationBean.setOrder( 1 ); //certifique-se de que o filtro de idempotência esteja após todo o filtro relacionado à autenticação
+        registrationBean.setOrder( 1 );
         return registrationBean;
     }
 
