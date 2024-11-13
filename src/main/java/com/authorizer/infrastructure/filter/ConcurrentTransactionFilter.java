@@ -80,17 +80,7 @@ public class ConcurrentTransactionFilter extends OncePerRequestFilter {
                 log.info("cache {} not exist ", idempotenceCacheKey);
 
                 CachedRequestHttpServletRequest requestCopier = new CachedRequestHttpServletRequest(request);
-                String accountFromRequest = getAccountFromRequest(requestCopier);
-
-                String concurrencyAccountCacheKey = "CONCURRENCY_ACCOUNT_CACHE_KEY_" + accountFromRequest;
-                BoundValueOperations<String, ConcurrentCacheControl> keyAccountOperation = redisTemplate.boundValueOps(concurrencyAccountCacheKey);
-                //boolean isAccountIsProcessing = keyAccountOperation.setIfAbsent(CacheControl.init(), 100, TimeUnit.MILLISECONDS);
-                boolean isAccountIsProcessing = keyAccountOperation.setIfAbsent(ConcurrentCacheControl.init(), 1, TimeUnit.MINUTES);
-                if (!isAccountIsProcessing) {
-                    //decline txn concurrency
-                    handleWhenConcurrencyExist(response, concurrencyAccountCacheKey);
-                    return;
-                }
+                if (concurrencyControlByAccount(response, requestCopier)) return;
 
                 ContentCachingResponseWrapper responseCopier = new ContentCachingResponseWrapper(response);
 
@@ -103,6 +93,21 @@ public class ConcurrentTransactionFilter extends OncePerRequestFilter {
                 handleWhenCacheExist(request, response, keyIdempotenceOperation, idempotenceCacheKey);
             }
         }
+    }
+
+    private boolean concurrencyControlByAccount(HttpServletResponse response, CachedRequestHttpServletRequest requestCopier) throws IOException {
+        String accountFromRequest = getAccountFromRequest(requestCopier);
+
+        String concurrencyAccountCacheKey = "CONCURRENCY_ACCOUNT_CACHE_KEY_" + accountFromRequest;
+        BoundValueOperations<String, ConcurrentCacheControl> keyAccountOperation = redisTemplate.boundValueOps(concurrencyAccountCacheKey);
+        //boolean isAccountIsProcessing = keyAccountOperation.setIfAbsent(CacheControl.init(), 100, TimeUnit.MILLISECONDS);
+        boolean isAccountIsProcessing = keyAccountOperation.setIfAbsent(ConcurrentCacheControl.init(), 1, TimeUnit.MINUTES);
+        if (!isAccountIsProcessing) {
+            //decline txn concurrency
+            handleWhenConcurrencyExist(response, concurrencyAccountCacheKey);
+            return true;
+        }
+        return false;
     }
 
     private boolean isNotTargetMethod(String method) {
