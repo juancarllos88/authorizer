@@ -4,8 +4,8 @@ import com.authorizer.domain.model.Account;
 import com.authorizer.domain.model.Balance;
 import lombok.*;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -49,7 +49,7 @@ public class AccountEntity extends BaseEntity<UUID, Account> {
     public Account toModel() {
         List<Balance> balanceList = null;
         Account account = new Account(id, name, insertedAt, updatedAt, balanceList);
-        balanceList = balances.stream().map(balance -> new Balance(balance.getId(),balance.getType(),balance.getAmount(), balance.getInsertedAt(),balance.getUpdatedAt(),account)).collect(Collectors.toList());
+        balanceList =  balances== null ? null : balances.stream().map(balance -> new Balance(balance.getId(),balance.getType(),balance.getAmount(), balance.getInsertedAt(),balance.getUpdatedAt(),account)).collect(Collectors.toList());
         account.setBalances(balanceList);
         return account;
     }

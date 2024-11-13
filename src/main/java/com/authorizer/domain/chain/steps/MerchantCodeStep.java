@@ -6,7 +6,6 @@ import com.authorizer.domain.services.MerchantCategoryCodeService;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.Cacheable;
 import java.util.Optional;
 
 @Component

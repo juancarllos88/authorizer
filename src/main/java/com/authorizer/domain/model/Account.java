@@ -33,7 +33,7 @@ public class Account extends BaseModel<UUID, AccountEntity> {
     public AccountEntity toEntity() {
         List<BalanceEntity> balanceList = null;
         AccountEntity account = new AccountEntity(id, name, insertedAt, updatedAt, balanceList);
-        balanceList = balances.stream().map(balance -> new BalanceEntity(balance.getId(),balance.getType(),balance.getAmount(), balance.getInsertedAt(),balance.getUpdatedAt(),account)).collect(Collectors.toList());
+        balanceList = balances== null ? null : balances.stream().map(balance -> new BalanceEntity(balance.getId(),balance.getType(),balance.getAmount(), balance.getInsertedAt(),balance.getUpdatedAt(),account)).collect(Collectors.toList());
         account.setBalances(balanceList);
         return account;
     }

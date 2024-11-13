@@ -1,7 +1,6 @@
 package com.authorizer.domain.model;
 
 
-
 import com.authorizer.domain.enums.BalanceTypeEnum;
 import com.authorizer.domain.exception.InsufficientBalanceException;
 import com.authorizer.infrastructure.entity.BalanceEntity;
@@ -43,7 +42,7 @@ public class Balance extends BaseModel<UUID, BalanceEntity> {
         if (amount.compareTo(amountTransaction) >= 0) {
             amount = amount.subtract(amountTransaction).setScale(2, RoundingMode.FLOOR);
         } else {
-            throw new InsufficientBalanceException("insufficient balance");
+            throw new InsufficientBalanceException(String.format("insufficient balance id %s type %s by account %s", id.toString(), type.toString(), account.getId().toString()));
         }
     }
 
