@@ -60,7 +60,6 @@ public class ConcurrentTransactionFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         String idempotencyToken = request.getHeader(IDEMPOTENCY_TOKEN);
 
-        log.debug("Start IdempotenceFilter {}", idempotencyToken);
         String idempotenceCacheKey = join(DELIMITER, method, request.getRequestURI(), idempotencyToken);
 
         if (isNotTargetMethod(method)) {
@@ -80,7 +79,6 @@ public class ConcurrentTransactionFilter extends OncePerRequestFilter {
                 log.info("cache {} not exist ", idempotenceCacheKey);
 
                 CachedRequestHttpServletRequest requestCopier = new CachedRequestHttpServletRequest(request);
-                if (concurrencyControlByAccount(response, requestCopier)) return;
 
                 ContentCachingResponseWrapper responseCopier = new ContentCachingResponseWrapper(response);
 
@@ -93,21 +91,6 @@ public class ConcurrentTransactionFilter extends OncePerRequestFilter {
                 handleWhenCacheExist(request, response, keyIdempotenceOperation, idempotenceCacheKey);
             }
         }
-    }
-
-    private boolean concurrencyControlByAccount(HttpServletResponse response, CachedRequestHttpServletRequest requestCopier) throws IOException {
-        String accountFromRequest = getAccountFromRequest(requestCopier);
-
-        String concurrencyAccountCacheKey = "CONCURRENCY_ACCOUNT_CACHE_KEY_" + accountFromRequest;
-        BoundValueOperations<String, ConcurrentCacheControl> keyAccountOperation = redisTemplate.boundValueOps(concurrencyAccountCacheKey);
-        //boolean isAccountIsProcessing = keyAccountOperation.setIfAbsent(CacheControl.init(), 100, TimeUnit.MILLISECONDS);
-        boolean isAccountIsProcessing = keyAccountOperation.setIfAbsent(ConcurrentCacheControl.init(), 1, TimeUnit.MINUTES);
-        if (!isAccountIsProcessing) {
-            //decline txn concurrency
-            handleWhenConcurrencyExist(response, concurrencyAccountCacheKey);
-            return true;
-        }
-        return false;
     }
 
     private boolean isNotTargetMethod(String method) {

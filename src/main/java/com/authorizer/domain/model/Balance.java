@@ -38,13 +38,22 @@ public class Balance extends BaseModel<UUID, BalanceEntity> {
         return new BalanceEntity(id, type, amount, insertedAt, updatedAt, account.toEntity());
     }
 
-    public void doDebit(BigDecimal amountTransaction) {
+    public BigDecimal doDebit(BigDecimal amountTransaction) {
         if (amount.compareTo(amountTransaction) >= 0) {
             amount = amount.subtract(amountTransaction).setScale(2, RoundingMode.FLOOR);
+            return amount;
         } else {
             throw new InsufficientBalanceException(String.format("insufficient balance id %s type %s by account %s", id.toString(), type.toString(), account.getId().toString()));
         }
     }
 
+    public BigDecimal doDebit(BigDecimal cachedBalanceAmount, BigDecimal amountTransaction) {
+        if (cachedBalanceAmount.compareTo(amountTransaction) >= 0) {
+            amount = cachedBalanceAmount.subtract(amountTransaction).setScale(2, RoundingMode.FLOOR);
+            return amount;
+        } else {
+            throw new InsufficientBalanceException(String.format("insufficient balance id %s type %s by account %s", id.toString(), type.toString(), account.getId().toString()));
+        }
+    }
 
 }
