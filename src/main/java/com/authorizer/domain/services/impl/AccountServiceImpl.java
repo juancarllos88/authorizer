@@ -1,5 +1,6 @@
 package com.authorizer.domain.services.impl;
 
+import com.authorizer.domain.exception.EntityNotFoundException;
 import com.authorizer.domain.model.Account;
 import com.authorizer.infrastructure.entity.AccountEntity;
 import com.authorizer.infrastructure.repository.AccountRepository;
@@ -25,7 +26,7 @@ public class AccountServiceImpl extends BaseServiceImpl<Account, AccountEntity> 
     @Override
     public Account findById(UUID id) {
         AccountEntity notFound = getRepository().findById(id)
-                .orElseThrow(() -> new RuntimeException("entity not found"));
-      return notFound.toModel();
+                .orElseThrow(() -> new EntityNotFoundException(String.format("account %s not found", id)));
+        return notFound.toModel();
     }
 }

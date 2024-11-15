@@ -2,7 +2,7 @@ package com.authorizer.infrastructure.handler;
 
 
 import com.authorizer.domain.enums.AuthorizationStatusEnum;
-import com.authorizer.domain.exception.BalanceTypeNotFoundException;
+import com.authorizer.domain.exception.EntityNotFoundException;
 import com.authorizer.domain.exception.InsufficientBalanceException;
 import com.authorizer.infrastructure.services.MessageService;
 import com.authorizer.presentation.dto.transaction.TransactionResponseDTO;
@@ -44,8 +44,8 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         return handleException(ex, AuthorizationStatusEnum.REJECTED, new HttpHeaders(), request);
     }
 
-    @ExceptionHandler({BalanceTypeNotFoundException.class})
-    public ResponseEntity<Object> handleBalanceTypeNotFoundException(RuntimeException ex, WebRequest request) {
+    @ExceptionHandler({EntityNotFoundException.class})
+    public ResponseEntity<Object> handleEntityNotFoundException(RuntimeException ex, WebRequest request) {
         log.debug("HttpStatus {} handleBalanceTypeNotFoundException: {}", HttpStatus.NOT_FOUND, ex.getMessage(), ex);
         return handleException(ex, AuthorizationStatusEnum.ERROR, new HttpHeaders(), request);
     }

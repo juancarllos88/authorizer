@@ -2,7 +2,7 @@ package com.authorizer.domain.services.impl;
 
 import com.authorizer.domain.chain.steps.BalanceTypeStep;
 import com.authorizer.domain.enums.BalanceTypeEnum;
-import com.authorizer.domain.exception.BalanceTypeNotFoundException;
+import com.authorizer.domain.exception.EntityNotFoundException;
 import com.authorizer.domain.exception.InsufficientBalanceException;
 import com.authorizer.domain.model.Account;
 import com.authorizer.domain.model.Balance;
@@ -54,7 +54,7 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
         return transactionRepository;
     }
 
-    private void analyzeBalance(UUID accountID, Balance balance, BigDecimal transactionAmount) {
+    private void calculateCacheBalanceAmount(UUID accountID, Balance balance, BigDecimal transactionAmount) {
         String accountFromRequest = accountID.toString();
 
         String concurrencyAccountCacheKey = "KEY_BALANCE_" + balance.getType().toString() + "_ACCOUNT_" + accountFromRequest;
@@ -94,19 +94,20 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
     public void authorization(TransactionDTO transactionDTO) {
         log.info("Starting transaction {} ...", transactionDTO.getId().toString());
 
+        Account account = accountService.findById(transactionDTO.getAccount());
+
         Optional<BalanceTypeStep> first = stepsToFindBalanceType
                 .stream()
                 .sorted((a, b) -> a.getPriority().compareTo(b.getPriority()))
                 .filter(next -> next.searchInfo(transactionDTO)).findFirst();
 
         BalanceTypeEnum balanceType = first.get().getBalanceTypeEnum();
-        log.info("The transactionDTO amount will use {} balance ", balanceType);
+        log.info("The transaction amount will use {} balance ", balanceType);
 
-        Account account = accountService.findById(transactionDTO.getAccount());
         findBalanceByType(account, balanceType).ifPresent(balance -> {
             try {
 
-                analyzeBalance(account.getId(), balance, transactionDTO.getTotalAmount());
+                calculateCacheBalanceAmount(account.getId(), balance, transactionDTO.getTotalAmount());
 
                 //balance.doDebit(transactionDTO.getTotalAmount());
                 //balanceService.save(balance);
@@ -122,20 +123,22 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
 
     }
 
-    private  Optional<Balance> findBalanceByType(Account account, BalanceTypeEnum balanceType) {
-        return account.getBalances()
+    private Optional<Balance> findBalanceByType(Account account, BalanceTypeEnum balanceType) {
+        return Optional.ofNullable(account.getBalances()
                 .stream()
                 .filter(balance -> balanceType.equals(balance.getType()))
-                .findFirst();
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException(String.format("%s balance not found to account %s ", balanceType, account.getId().toString()))));
     }
 
     private void fallbackAuthorization(Account account, BigDecimal transactionAmount) {
         log.info("The authorizer will attempt in the CASH balance of account {}", account.getId().toString());
         findBalanceByType(account, BalanceTypeEnum.CASH).ifPresentOrElse(balance -> {
-            balance.doDebit(transactionAmount);
-            balanceService.save(balance);
+
+            calculateCacheBalanceAmount(account.getId(), balance, transactionAmount);
+            balanceService.updateBalanceAmount(balance);
         }, () -> {
-            throw new BalanceTypeNotFoundException(String.format("CASH balance not found to account %s ", account.getId().toString()));
+            throw new EntityNotFoundException(String.format("CASH balance not found to account %s ", account.getId().toString()));
         });
     }
 

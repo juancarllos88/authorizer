@@ -1,9 +1,9 @@
 package com.authorizer.domain.exception;
 
-public class BalanceTypeNotFoundException extends RuntimeException {
+public class EntityNotFoundException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
-    public BalanceTypeNotFoundException(String message) {
+    public EntityNotFoundException(String message) {
         super(message);
     }
 }

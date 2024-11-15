@@ -50,4 +50,4 @@ espoc:
   idempotency:
     paths: >
       /transactions/authorization
-    ttlInMinutes: 60
+    ttlInMinutes: 1
