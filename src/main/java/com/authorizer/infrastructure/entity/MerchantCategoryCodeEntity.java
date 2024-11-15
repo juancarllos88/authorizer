@@ -1,19 +1,21 @@
 package com.authorizer.infrastructure.entity;
 
-import com.authorizer.domain.model.MerchantCategoryCode;
 import com.authorizer.domain.enums.BalanceTypeEnum;
+import com.authorizer.domain.model.MerchantCategoryCode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "merchants_category_code")

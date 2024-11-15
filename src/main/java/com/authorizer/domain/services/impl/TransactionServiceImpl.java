@@ -57,38 +57,47 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
     private void calculateCacheBalanceAmount(UUID accountID, Balance balance, BigDecimal transactionAmount) {
         String accountFromRequest = accountID.toString();
 
-        String concurrencyAccountCacheKey = "KEY_BALANCE_" + balance.getType().toString() + "_ACCOUNT_" + accountFromRequest;
-        BoundValueOperations<String, ConcurrentCacheControl> keyAccountOperation = redisTemplate.boundValueOps(concurrencyAccountCacheKey);
-        boolean isAbsent = Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(concurrencyAccountCacheKey,
+        String balanceAmountCacheKey = "KEY_BALANCE_" + balance.getType().toString() + "_ACCOUNT_" + accountFromRequest;
+        BoundValueOperations<String, ConcurrentCacheControl> keyBalanceAmountOperation = redisTemplate.boundValueOps(balanceAmountCacheKey);
+        boolean isAbsent = Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(balanceAmountCacheKey,
                 ConcurrentCacheControl.initBalance(balance.getAmount()), 60, TimeUnit.MINUTES));
-        //boolean isAbsent = keyAccountOperation.ops setIfAbsent(ConcurrentCacheControl.initBalance(balance.getAmount()), 60, TimeUnit.MINUTES);
+
         if (isAbsent) {
-            log.info("cache {} not exist ", concurrencyAccountCacheKey);
-            updateBalanceInCache(balance, balance.getAmount(), transactionAmount, concurrencyAccountCacheKey, keyAccountOperation);
+            log.info("cache {} not exist ", balanceAmountCacheKey);
+            updateBalanceInCache(balance, balance.getAmount(), transactionAmount, balanceAmountCacheKey, keyBalanceAmountOperation);
 
         } else {
             synchronized (this) {
                 ConcurrentCacheControl balanceCached = null;
                 do{
-                    balanceCached = keyAccountOperation.get();
+                    balanceCached = keyBalanceAmountOperation.get();
                 }while (!balanceCached.isDone());
-                log.info("balance amount {} exists in cache {}", balanceCached.getBalanceAmount(), concurrencyAccountCacheKey);
-                updateBalanceInCache(balance, balanceCached.getBalanceAmount(), transactionAmount, concurrencyAccountCacheKey, keyAccountOperation);
+                log.info("balance amount {} exists in cache {}", balanceCached.getBalanceAmount(), balanceAmountCacheKey);
+                updateBalanceInCache(balance, balanceCached.getBalanceAmount(), transactionAmount, balanceAmountCacheKey, keyBalanceAmountOperation);
             }
         }
 
     }
 
-    private void updateBalanceInCache(Balance balance, BigDecimal cachedBalanceAmount,  BigDecimal transactionAmount, String concurrencyAccountCacheKey,
-                                             BoundValueOperations<String, ConcurrentCacheControl> keyAccountOperation) {
+    private void updateBalanceInCache(Balance balance, BigDecimal cachedBalanceAmount,  BigDecimal transactionAmount, String balanceAmountCacheKey,
+                                             BoundValueOperations<String, ConcurrentCacheControl> keyBalanceAmountOperation) {
 
-        BigDecimal balanceToBeCached = balance.updateAmount(cachedBalanceAmount,transactionAmount);
+        BigDecimal balanceToBeCached = null;
+        try{
+            balanceToBeCached = balance.updateAmount(cachedBalanceAmount,transactionAmount);
+
+        }catch (InsufficientBalanceException e){
+            ConcurrentCacheControl cachedResponse = keyBalanceAmountOperation.get();
+            cachedResponse.setDone(true);
+            keyBalanceAmountOperation.set(cachedResponse, 60, TimeUnit.MINUTES);
+            throw e;
+        }
 
         ConcurrentCacheControl result = ConcurrentCacheControl.initBalance(balanceToBeCached);
         result.setDone(true);
 
-        log.info("update new balance amount {} in cache {} ", balanceToBeCached, concurrencyAccountCacheKey);
-        keyAccountOperation.set(result, 60, TimeUnit.MINUTES);
+        log.info("update new balance amount {} in cache {} ", balanceToBeCached, balanceAmountCacheKey);
+        keyBalanceAmountOperation.set(result, 60, TimeUnit.MINUTES);
     }
 
     public void authorization(TransactionDTO transactionDTO) {
@@ -109,15 +118,21 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
 
                 calculateCacheBalanceAmount(account.getId(), balance, transactionDTO.getTotalAmount());
 
-                //balance.doDebit(transactionDTO.getTotalAmount());
-                //balanceService.save(balance);
                 balanceService.updateBalanceAmount(balance);
             }catch (InsufficientBalanceException e) {
-                log.info(e.getMessage());
+                log.info("A new attempt will be made to authorize the account {} using the cash balance.", transactionDTO.getAccount());
+                log.error(e.getMessage());
                 fallbackAuthorization(account,transactionDTO.getTotalAmount());
             }
             log.info("Authorization done...");
-            Transaction transaction = new Transaction(null,gson.toJson(transactionDTO), LocalDateTime.now(),transactionDTO.getTotalAmount(),account.getId(),balance.getId());
+            ///Transaction transaction = new Transaction(null,gson.toJson(transactionDTO), LocalDateTime.now(),transactionDTO.getTotalAmount(),account.getId(),balance.getId());
+            Transaction transaction = Transaction.builder()
+                    .payload(gson.toJson(transactionDTO))
+                    .insertedAt(LocalDateTime.now())
+                    .amount(transactionDTO.getTotalAmount())
+                    .accountId(account.getId())
+                    .balanceId(balance.getId())
+                    .build();
             save(transaction);
         });
 
@@ -131,6 +146,13 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
                 .orElseThrow(() -> new EntityNotFoundException(String.format("%s balance not found to account %s ", balanceType, account.getId().toString()))));
     }
 
+    /**
+     * If the balance on the first attempt is not sufficient,
+     * an attempt will be made on the cash balance,
+     * if the account has this type of balance.
+     * @param account cardholder account
+     * @param transactionAmount transaction amount
+     */
     private void fallbackAuthorization(Account account, BigDecimal transactionAmount) {
         log.info("The authorizer will attempt in the CASH balance of account {}", account.getId().toString());
         findBalanceByType(account, BalanceTypeEnum.CASH).ifPresentOrElse(balance -> {

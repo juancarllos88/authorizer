@@ -4,7 +4,10 @@ package com.authorizer.domain.model;
 import com.authorizer.domain.enums.BalanceTypeEnum;
 import com.authorizer.domain.exception.InsufficientBalanceException;
 import com.authorizer.infrastructure.entity.BalanceEntity;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -14,7 +17,6 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Balance extends BaseModel<UUID, BalanceEntity> {

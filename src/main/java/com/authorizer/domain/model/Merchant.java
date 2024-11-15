@@ -2,13 +2,15 @@ package com.authorizer.domain.model;
 
 import com.authorizer.domain.enums.BalanceTypeEnum;
 import com.authorizer.infrastructure.entity.MerchantEntity;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.UUID;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Merchant extends BaseModel<UUID, MerchantEntity> {

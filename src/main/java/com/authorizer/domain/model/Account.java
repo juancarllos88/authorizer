@@ -2,7 +2,10 @@ package com.authorizer.domain.model;
 
 import com.authorizer.infrastructure.entity.AccountEntity;
 import com.authorizer.infrastructure.entity.BalanceEntity;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,7 +14,6 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Account extends BaseModel<UUID, AccountEntity> {
