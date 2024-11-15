@@ -82,7 +82,7 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
     private void updateBalanceInCache(Balance balance, BigDecimal cachedBalanceAmount,  BigDecimal transactionAmount, String concurrencyAccountCacheKey,
                                              BoundValueOperations<String, ConcurrentCacheControl> keyAccountOperation) {
 
-        BigDecimal balanceToBeCached = balance.doDebit(cachedBalanceAmount,transactionAmount);
+        BigDecimal balanceToBeCached = balance.updateAmount(cachedBalanceAmount,transactionAmount);
 
         ConcurrentCacheControl result = ConcurrentCacheControl.initBalance(balanceToBeCached);
         result.setDone(true);
