@@ -18,11 +18,11 @@ import static java.lang.String.join;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConcurrentCacheControl implements Serializable {
-    public Map<String, Object> header;
-    public int status;
-    public String cacheValue;
-    public boolean isDone;
-    public BigDecimal balanceAmount;
+    private Map<String, Object> header;
+    private int status;
+    private String cacheValue;
+    private boolean isDone;
+    private BigDecimal balanceAmount;
 
 
     public static ConcurrentCacheControl init() {

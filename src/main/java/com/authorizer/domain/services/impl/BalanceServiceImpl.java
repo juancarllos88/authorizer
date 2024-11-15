@@ -26,7 +26,6 @@ public class BalanceServiceImpl extends BaseServiceImpl<Balance, BalanceEntity> 
     @Override
     @Transactional
     public void updateBalanceAmount(Balance balance) {
-         log.info("id {} updateBalanceAmount {}", balance.getId(),balance.getAmount());
         getRepository().updateBalanceAmount(balance.getId(), balance.getAmount());
     }
 }

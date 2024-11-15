@@ -5,9 +5,8 @@ import com.authorizer.domain.enums.AuthorizationStatusEnum;
 import com.authorizer.domain.exception.BalanceTypeNotFoundException;
 import com.authorizer.domain.exception.InsufficientBalanceException;
 import com.authorizer.infrastructure.services.MessageService;
-import com.authorizer.presentation.dto.response.ResponseDTO;
+import com.authorizer.presentation.dto.transaction.TransactionResponseDTO;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -20,7 +19,6 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Log4j2
@@ -66,7 +64,7 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
     }
 
     protected ResponseEntity<Object> handleException(Exception ex, AuthorizationStatusEnum authorizationStatusEnum, HttpHeaders httpHeaders, WebRequest request) {
-        ResponseDTO response = new ResponseDTO(authorizationStatusEnum.getCode());
+        TransactionResponseDTO response = new TransactionResponseDTO(authorizationStatusEnum.getCode());
         return handleExceptionInternal(ex, response, httpHeaders, HttpStatus.OK, request);
     }
 

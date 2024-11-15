@@ -71,9 +71,9 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
                 ConcurrentCacheControl balanceCached = null;
                 do{
                     balanceCached = keyAccountOperation.get();
-                }while (!balanceCached.isDone);
-                log.info("balance amount {} exists in cache {}", balanceCached.balanceAmount, concurrencyAccountCacheKey);
-                updateBalanceInCache(balance, balanceCached.balanceAmount, transactionAmount, concurrencyAccountCacheKey, keyAccountOperation);
+                }while (!balanceCached.isDone());
+                log.info("balance amount {} exists in cache {}", balanceCached.getBalanceAmount(), concurrencyAccountCacheKey);
+                updateBalanceInCache(balance, balanceCached.getBalanceAmount(), transactionAmount, concurrencyAccountCacheKey, keyAccountOperation);
             }
         }
 

@@ -1,7 +1,7 @@
 package com.authorizer.infrastructure.filter;
 
 import com.authorizer.domain.enums.AuthorizationStatusEnum;
-import com.authorizer.presentation.dto.response.ResponseDTO;
+import com.authorizer.presentation.dto.transaction.TransactionResponseDTO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -120,22 +119,17 @@ public class ConcurrentTransactionFilter extends OncePerRequestFilter {
         ConcurrentCacheControl cachedResponse = keyOperation.get();
         log.info("cached content = {} ", cachedResponse);
         String responseBody;
-        Integer status;
+        int status;
 
-        if (cachedResponse.isDone) {
+        if (cachedResponse.isDone()) {
             log.info("cache {} exist, and is done.", cacheKey);
-            status = cachedResponse.status;
-            responseBody = cachedResponse.cacheValue;
+            status = cachedResponse.getStatus();
+            responseBody = cachedResponse.getCacheValue();
         } else {
             log.info("cache {} exist, and is still in processing, please retry later", cacheKey);
-            /*status = HttpStatus.TOO_EARLY.value();
-            ProblemDetail detail = new ProblemDetail();
-            detail.setStatus(HttpStatus.TOO_EARLY);
-            detail.setType(URI.create(request.getRequestURI()));
-            detail.setDetail("request is now processing, please try again later");*/
             status = HttpStatus.OK.value();
-            ResponseDTO responseDTO = new ResponseDTO(AuthorizationStatusEnum.ERROR.getCode());
-            responseBody = OBJECT_MAPPER.writeValueAsString(responseDTO);
+            TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO(AuthorizationStatusEnum.ERROR.getCode());
+            responseBody = OBJECT_MAPPER.writeValueAsString(transactionResponseDTO);
         }
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -151,8 +145,8 @@ public class ConcurrentTransactionFilter extends OncePerRequestFilter {
             throws IOException {
 
         log.info("cache {} exist, and is still in processing, please retry later", cacheKey);
-        ResponseDTO responseDTO = new ResponseDTO(AuthorizationStatusEnum.ERROR.getCode());
-        String responseBody = OBJECT_MAPPER.writeValueAsString(responseDTO);
+        TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO(AuthorizationStatusEnum.ERROR.getCode());
+        String responseBody = OBJECT_MAPPER.writeValueAsString(transactionResponseDTO);
         response.setStatus(HttpStatus.OK.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
