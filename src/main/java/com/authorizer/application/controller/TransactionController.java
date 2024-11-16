@@ -26,8 +26,8 @@ public class TransactionController implements TransactionContract {
 
     @Override
     public ResponseEntity<TransactionResponseDTO> authorization(@Valid @RequestBody TransactionDTO transaction) throws Throwable {
-        transactionService.authorization(transaction);
-        return responseService.ok(TransactionResponseDTO.builder().code(AuthorizationStatusEnum.APPROVED.getCode()).build());
+        AuthorizationStatusEnum authorizationStatus = transactionService.authorization(transaction);
+        return responseService.ok(TransactionResponseDTO.builder().code(authorizationStatus.getCode()).build());
     }
 
 }

@@ -1,6 +1,7 @@
 package com.authorizer.domain.services.impl;
 
 import com.authorizer.domain.chain.steps.BalanceTypeStep;
+import com.authorizer.domain.enums.AuthorizationStatusEnum;
 import com.authorizer.domain.enums.BalanceTypeEnum;
 import com.authorizer.domain.exception.EntityNotFoundException;
 import com.authorizer.domain.exception.InsufficientBalanceException;
@@ -37,17 +38,21 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
     private final AccountService accountService;
     private final BalanceService balanceService;
     private final List<BalanceTypeStep> stepsToFindBalanceType;
-    private final Gson gson;
     private final RedisTemplate<String, ConcurrentCacheControl> redisTemplate;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository, List<BalanceTypeStep> stepsToFindBalanceType, AccountService accountService, BalanceService balanceService, Gson gson, RedisTemplate<String, ConcurrentCacheControl> redisTemplate) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository,
+                                  List<BalanceTypeStep> stepsToFindBalanceType,
+                                  AccountService accountService,
+                                  BalanceService balanceService,
+                                  RedisTemplate<String, ConcurrentCacheControl> redisTemplate) {
         this.transactionRepository = transactionRepository;
         this.stepsToFindBalanceType = stepsToFindBalanceType;
         this.accountService = accountService;
         this.balanceService = balanceService;
-        this.gson = gson;
         this.redisTemplate = redisTemplate;
     }
+
+
 
     @Override
     protected TransactionRepository getRepository() {
@@ -93,14 +98,14 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
             throw e;
         }
 
-        ConcurrentCacheControl result = ConcurrentCacheControl.initBalance(balanceToBeCached);
-        result.setDone(true);
+        ConcurrentCacheControl result = ConcurrentCacheControl.doneBalance(balanceToBeCached);
+        //result.setDone(true);
 
         log.info("update new balance amount {} in cache {} ", balanceToBeCached, balanceAmountCacheKey);
         keyBalanceAmountOperation.set(result, 60, TimeUnit.MINUTES);
     }
 
-    public void authorization(TransactionDTO transactionDTO) {
+    public AuthorizationStatusEnum authorization(TransactionDTO transactionDTO) {
         log.info("Starting transaction {} ...", transactionDTO.getId().toString());
 
         Account account = accountService.findById(transactionDTO.getAccount());
@@ -125,6 +130,7 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
                 fallbackAuthorization(account,transactionDTO.getTotalAmount());
             }
             log.info("Authorization done...");
+            Gson gson = new Gson();
             ///Transaction transaction = new Transaction(null,gson.toJson(transactionDTO), LocalDateTime.now(),transactionDTO.getTotalAmount(),account.getId(),balance.getId());
             Transaction transaction = Transaction.builder()
                     .payload(gson.toJson(transactionDTO))
@@ -135,6 +141,8 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
                     .build();
             save(transaction);
         });
+
+        return AuthorizationStatusEnum.APPROVED;
 
     }
 

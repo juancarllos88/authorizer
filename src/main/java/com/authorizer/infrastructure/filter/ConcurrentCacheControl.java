@@ -37,5 +37,9 @@ public class ConcurrentCacheControl implements Serializable {
         return new ConcurrentCacheControl(Collections.emptyMap(), 0, "", false, balanceAmount);
     }
 
+    public static ConcurrentCacheControl doneBalance(BigDecimal balanceAmount) {
+        return new ConcurrentCacheControl(Collections.emptyMap(), 0, "", true, balanceAmount);
+    }
+
 
 }
