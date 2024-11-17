@@ -52,8 +52,6 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
         this.redisTemplate = redisTemplate;
     }
 
-
-
     @Override
     protected TransactionRepository getRepository() {
         return transactionRepository;
@@ -99,10 +97,10 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
         }
 
         ConcurrentCacheControl result = ConcurrentCacheControl.doneBalance(balanceToBeCached);
-        //result.setDone(true);
 
         log.info("update new balance amount {} in cache {} ", balanceToBeCached, balanceAmountCacheKey);
         keyBalanceAmountOperation.set(result, 60, TimeUnit.MINUTES);
+
     }
 
     public AuthorizationStatusEnum authorization(TransactionDTO transactionDTO) {
