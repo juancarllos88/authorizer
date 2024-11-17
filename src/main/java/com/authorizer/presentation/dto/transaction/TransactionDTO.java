@@ -1,25 +1,21 @@
 package com.authorizer.presentation.dto.transaction;
-
-import com.authorizer.domain.enums.AuthorizationStatusEnum;
-import com.authorizer.domain.enums.BalanceTypeEnum;
-import com.authorizer.domain.model.Transaction;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
-
-import org.springframework.web.bind.annotation.ModelAttribute;
 
 @Builder
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class TransactionDTO {
     @Schema(description = "unique sequence to identify the transaction", defaultValue = "a8f0278-ba91-40c0-b924-1719859ddf3b")
     @NotNull

@@ -3,16 +3,20 @@ version: "3.7"
 services:
 
   mysql:
-    image: mysql:5.7
-    hostname: mysql
+    image: mysql:8.0.4
+    # hostname: mysql
     container_name: mysql-miniautorizador
     restart: always
     ports:
       - "3306:3306"
+    volumes:
+      - mysql-miniautorizador:/var/lib/mysql
     environment:
       MYSQL_DATABASE: miniautorizador
-      MYSQL_ROOT_PASSWORD:
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: miniautorizador
+      MYSQL_PASSWORD: miniautorizador
+      #MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
 
   redis:
     image: redis:7-alpine
@@ -30,4 +34,5 @@ services:
       - redis-insight:/data
 
 volumes:
-  redis-insight: 
+  redis-insight:
+  mysql-miniautorizador:

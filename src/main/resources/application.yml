@@ -6,23 +6,30 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL57Dialect
-#    properties:
-#      hibernate:
-#        show_sql: true
-#        format_sql: true
+      ddl-auto: none
+#    database: mysql
+    database-platform: org.hibernate.dialect.MySQLDialect
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
   datasource:
-    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/miniautorizador}
-    username: root
-    password:
+    url: jdbc:mysql://localhost:3306/miniautorizador?createDatabaseIfNotExist=true
+    username: miniautorizador
+    password: miniautorizador
     hikari:
       maximum-pool-size: 30
       minimum-idle: 10
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
+    locations: classpath:db/migration
+
+
 
 server:
   error:
@@ -41,10 +48,13 @@ spring-doc:
 logging:
   level:
     org:
+      flywaydb: debug
       hibernate:
         type: trace
     com:
       authorizer: debug
+    sql: debug
+    root: debug
 
 espoc:
   idempotency:
