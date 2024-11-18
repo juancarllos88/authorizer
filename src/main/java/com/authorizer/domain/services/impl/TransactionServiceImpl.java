@@ -70,7 +70,7 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
             updateBalanceInCache(balance, balance.getAmount(), transactionAmount, balanceAmountCacheKey, keyBalanceAmountOperation);
 
         } else {
-            synchronized (balanceAmountCacheKey) {
+            synchronized (keyBalanceAmountOperation) {
                 ConcurrentCacheControl balanceCached = null;
                 do{
                     balanceCached = keyBalanceAmountOperation.get();
