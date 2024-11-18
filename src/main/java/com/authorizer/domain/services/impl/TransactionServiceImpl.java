@@ -129,7 +129,6 @@ public class TransactionServiceImpl extends BaseServiceImpl<Transaction, Transac
             }
             log.info("Authorization done...");
             Gson gson = new Gson();
-            ///Transaction transaction = new Transaction(null,gson.toJson(transactionDTO), LocalDateTime.now(),transactionDTO.getTotalAmount(),account.getId(),balance.getId());
             Transaction transaction = Transaction.builder()
                     .payload(gson.toJson(transactionDTO))
                     .insertedAt(LocalDateTime.now())
