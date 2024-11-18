@@ -74,7 +74,7 @@ Visualização da [documentação swagger](http://localhost:8080/api/docs/swagge
 
 Inicialmente foi criado uma migration usando a ferramenta de versionamento `flyway`, contendo duas `accounts` e suas respectivas `balances`:
 - Account `554e590b-a4bc-4859-b245-cbb4701fdbbd` com 3 balances `FOOD|MEAL|CASH` no valor de R$ 1000,00 cada
-- Account `fcd31a0b-3bfa-4996-9f74-74d51e98ed10` com 3 balances `FOOD|MEAL` no valor de R$ 1000,00 cada
+- Account `fcd31a0b-3bfa-4996-9f74-74d51e98ed10` com 2 balances `FOOD|MEAL` no valor de R$ 1000,00 cada
 
 
 Exemplo curl para submeter uma transação para o autorizador:
