@@ -40,12 +40,10 @@ public class TransactionEntity extends BaseEntity<UUID, Transaction> {
 
     @NotNull
     @Column(name = "balance_id")
-    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID balanceId;
 
     @NotNull
     @Column(name = "account_id")
-    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID accountId;
 
     public TransactionEntity(UUID id, String payload, LocalDateTime insertedAt, BigDecimal amount, UUID balanceId, UUID accountId) {
