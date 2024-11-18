@@ -51,6 +51,20 @@ Para execução do autorizador executar:
 mvn spring-boot:run
 ```
 
+Para execução dos testes unitários:
+
+```sh
+mvn clean test
+```
+
+Para execução dos testes de integração utilizando:
+- PostgreSQL testcontainer
+- Redis testcontainer
+
+```sh
+mvn clean verify -Dsurefire.skip=true
+```
+
 Visualização da [documentação swagger](http://localhost:8080/api/docs/swagger-ui/index.html#)
 
 [![N|Solid](https://github.com/juancarllos88/caju-authorizer/blob/main/img/swagger.png?raw=true)](https://github.com/juancarllos88/caju-authorizer)
