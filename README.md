@@ -1,4 +1,4 @@
-# Caju Authorizer
+# Authorizer
 ## _Autorizador de transações_
 
 ## Features
